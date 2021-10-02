@@ -3,6 +3,7 @@ from typing import NamedTuple
 from PySide2.QtCore import (
     QPoint,
     QRect,
+    QSize,
 )
 from PySide2.QtGui import (
     QColor,
@@ -10,19 +11,7 @@ from PySide2.QtGui import (
     QPainter,
 )
 
-
-def print_table(srcs, dsts):
-    print("table:\n[ ")
-    for src_line, dst_line in zip(srcs, dsts):
-        print("  [", end="")
-        for x, y in src_line:
-            print(f"{x:>2},{y:>2}:", end="")
-        if srcs:
-            print("  ->  ", end="")
-            for x, y in dst_line:
-                print(f"{x:>2},{y:>2}:", end="")
-        print(" ]")
-    print("]")
+from mapeditor.utils import scaled
 
 
 def transparent(image, ref_color, tile_size):
@@ -37,6 +26,43 @@ def transparent(image, ref_color, tile_size):
 class TilePattern(NamedTuple):
     region: QRect
     image: QImage
+
+
+def preview_pattern(
+    origin: tuple[int, int],
+    target: tuple[int, int],
+    pattern: TilePattern,
+    tile_size: int,
+) -> TilePattern:
+    ox, oy = origin
+    target_x, target_y = target
+
+    scaled_region = scaled(pattern.region, tile_size)
+
+    image = QImage(
+        QSize(pattern.image.width(), pattern.image.height()),
+        QImage.Format_ARGB32,
+    )
+    painter = QPainter(image)
+    painter.setCompositionMode(QPainter.CompositionMode_Source)
+    painter.fillRect(pattern.image.rect(), QColor(255, 255, 255))
+    offset_x = (ox - target_x) % pattern.region.width()
+    offset_y = (oy - target_y) % pattern.region.height()
+    for x in (offset_x + offset for offset in (-pattern.region.width(), 0, pattern.region.width())):
+        for y in (offset_y + offset for offset in (-pattern.region.height(), 0, pattern.region.height())):
+            src_rect = QRect(
+                x * tile_size,
+                y * tile_size,
+                pattern.image.width(),
+                pattern.image.height(),
+            )
+            painter.drawImage(src_rect, pattern.image)
+    painter.end()
+
+    return TilePattern(
+        region=pattern.region,
+        image=image,
+    )
 
 
 class Tileset:
@@ -80,25 +106,15 @@ class Layer:
         """
         pattern_width = pattern.region.width()
         pattern_height = pattern.region.height()
-        data = self.tileset.get(QRect(0, 0, pattern_width, pattern_height))
+        data = self.tileset.get(pattern.region)
         w = self.size[0]
 
         print(f"drawing pattern at {x, y}")
-        srcs = []
-        dsts = []
         for py in range(pattern_height):
-            src_line = []
-            dst_line = []
             for px in range(pattern_width):
                 dx = px + x
                 dy = py + y
                 self.data[dx + w * dy] = data[px + pattern_width * py]
-                src_line.append((px, py))
-                dst_line.append((dx, dy))
-            srcs.append(src_line)
-            dsts.append(dst_line)
-
-        print_table(srcs, dsts)
 
         x *= self.tile_size
         y *= self.tile_size

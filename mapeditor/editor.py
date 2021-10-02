@@ -18,14 +18,8 @@ from PySide2.QtGui import (
     QPixmap,
 )
 
-from mapeditor.map import TilePattern, Tileset, Map, make_image
-
-
-def scaled(rect, scale):
-    rect = QRect(
-        rect.x() * scale, rect.y() * scale, rect.width() * scale, rect.height() * scale
-    )
-    return rect
+from mapeditor.map import TilePattern, Tileset, Map, make_image, preview_pattern
+from mapeditor.utils import scaled
 
 
 class MapEditor(QWidget):
@@ -206,18 +200,21 @@ class TilemapEditor(QLabel):
     def paintEvent(self, e):
         super().paintEvent(e)
 
+        SHADOW_COLOR = QColor(0, 0, 0)
+        BORDER_COLOR = QColor(255, 255, 255)
+
         if not self.sel_rect:
             return
 
         painter = QPainter(self)
-        painter.setPen(QPen(QColor(0, 0, 0), 3))
+        painter.setPen(QPen(SHADOW_COLOR, 3))
 
         scale = self.scaling * self.map.tile_size
         rect = scaled(self.sel_rect, scale)
         rect.setWidth(rect.width() - 1)
         rect.setHeight(rect.height() - 1)
         painter.drawRect(rect)
-        painter.setPen(QPen(QColor(255, 255, 255), 1))
+        painter.setPen(QPen(BORDER_COLOR, 1))
         painter.drawRect(rect)
         painter.end()
 
@@ -240,25 +237,24 @@ class TilemapEditor(QLabel):
 
         pos = e.pos()
         x, y = pos.x() // scale, pos.y() // scale
-        rect = self.tileset_selector.sel_rect
+        sel_rect = self.tileset_selector.sel_rect
 
-        if rect is None or (x, y) == self.last_point:
+        if sel_rect is None or (x, y) == self.last_point:
             return
 
         tileset = self.map.tileset
         ox, oy = self.origin
-        if y != self.last_point[1]:
-            xoffset = (x - ox) % rect.width()
-            yoffset = (y - oy) % rect.height()
-            reco = QRect(
-                rect.x() + xoffset,
-                rect.y() + yoffset,
-                max(0, min(rect.width(), rect.width() - abs(x - self.last_point[0]))),
-                min(rect.height(), abs(y - self.last_point[1])),
-            )
+
+        last_x, last_y = self.last_point
+
+        if x != last_x or y != last_y:
+            scaled_source = scaled(sel_rect, self.map.tile_size)
+
             pattern = TilePattern(
-                region=reco, image=tileset.image.copy(scaled(reco, self.map.tile_size))
+                region=sel_rect, image=tileset.image.copy(scaled_source)
             )
+
+            pattern = preview_pattern((ox, oy), (x, y), pattern, self.map.tile_size)
             self.current_layer().place(x, y, pattern)
 
         self.remake_image()

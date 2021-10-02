@@ -273,7 +273,9 @@ class TilemapEditor(QLabel):
                             rect.width() - abs(x - self.last_point[0]))),
                     min(rect.height(), abs(y - self.last_point[1]))
                     )
-            pattern = tileset.image.copy(scaled(reco, self.map.tile_size))
+            pattern = TilePattern(
+                region=reco,
+                image=tileset.image.copy(scaled(reco, self.map.tile_size)))
             self.current_layer().place(x, y, pattern)
 
         self.remake_image()

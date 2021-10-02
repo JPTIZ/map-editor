@@ -11,6 +11,20 @@ from PySide2.QtGui import (
         )
 
 
+def print_table(srcs, dsts):
+    print('table:\n[ ')
+    for src_line, dst_line in zip(srcs, dsts):
+        print('  [', end='')
+        for x, y in src_line:
+            print(f'{x:>2},{y:>2}:', end='')
+        if srcs:
+            print('  ->  ', end='')
+            for x, y in dst_line:
+                print(f'{x:>2},{y:>2}:', end='')
+        print(' ]')
+    print(']')
+
+
 def transparent(image, ref_color, tile_size):
     image = image.convertToFormat(QImage.Format_ARGB32)
     for x in range(image.width()):
@@ -54,7 +68,7 @@ class Layer:
         self.scaling = 4
         self.data = [0] * size[0] * size[1]
 
-    def place(self, x, y, pattern):
+    def place(self, x, y, pattern: TilePattern):
         '''
         Inserts pattern on coordinates
 
@@ -64,15 +78,25 @@ class Layer:
         '''
         pattern_width = pattern.region.width()
         pattern_height = pattern.region.height()
-        data = self.tileset.get(pattern.region)
+        data = self.tileset.get(QRect(0, 0, pattern_width, pattern_height))
         w = self.size[0]
 
+        print(f'drawing pattern at {x, y}')
+        srcs = []
+        dsts = []
         for py in range(pattern_height):
+            src_line = []
+            dst_line = []
             for px in range(pattern_width):
                 dx = px + x
                 dy = py + y
                 self.data[dx + w * dy] = data[px + pattern_width * py]
-                print(f'{px, py} -> {dx, dy}')
+                src_line.append((px, py))
+                dst_line.append((dx, dy))
+            srcs.append(src_line)
+            dsts.append(dst_line)
+
+        print_table(srcs, dsts)
 
         x *= self.tile_size
         y *= self.tile_size

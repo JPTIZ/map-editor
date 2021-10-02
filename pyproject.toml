@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "map-editor"
+version = "0.1.0"
+description = "A simple map editor that exports maps using templates."
+authors = ["João Paulo Taylor Ienczak Zanette <jpaulotiz@gmail.com>"]
+license = "mit"
+
+[tool.poetry.dependencies]
+python = "^3.9,<3.10"
+PySide2 = "^5.15.2"
+Jinja2 = "^3.0.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

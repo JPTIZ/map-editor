@@ -1,28 +1,28 @@
 from typing import NamedTuple
 
 from PySide2.QtCore import (
-        QPoint,
-        QRect,
-        )
+    QPoint,
+    QRect,
+)
 from PySide2.QtGui import (
-        QColor,
-        QImage,
-        QPainter,
-        )
+    QColor,
+    QImage,
+    QPainter,
+)
 
 
 def print_table(srcs, dsts):
-    print('table:\n[ ')
+    print("table:\n[ ")
     for src_line, dst_line in zip(srcs, dsts):
-        print('  [', end='')
+        print("  [", end="")
         for x, y in src_line:
-            print(f'{x:>2},{y:>2}:', end='')
+            print(f"{x:>2},{y:>2}:", end="")
         if srcs:
-            print('  ->  ', end='')
+            print("  ->  ", end="")
             for x, y in dst_line:
-                print(f'{x:>2},{y:>2}:', end='')
-        print(' ]')
-    print(']')
+                print(f"{x:>2},{y:>2}:", end="")
+        print(" ]")
+    print("]")
 
 
 def transparent(image, ref_color, tile_size):
@@ -53,9 +53,11 @@ class Tileset:
 
     def get(self, rect):
         w = self.image.width() // self.tile_size
-        return [rect.x() + px + w * (rect.y() + py)
-                for py in range(rect.height())
-                for px in range(rect.width())]
+        return [
+            rect.x() + px + w * (rect.y() + py)
+            for py in range(rect.height())
+            for px in range(rect.width())
+        ]
 
 
 class Layer:
@@ -69,19 +71,19 @@ class Layer:
         self.data = [0] * size[0] * size[1]
 
     def place(self, x, y, pattern: TilePattern):
-        '''
+        """
         Inserts pattern on coordinates
 
         Args:
             x(int): x on map coordinates (not pixel's!)
             y(int): y on map coordinates (not pixel's!)
-        '''
+        """
         pattern_width = pattern.region.width()
         pattern_height = pattern.region.height()
         data = self.tileset.get(QRect(0, 0, pattern_width, pattern_height))
         w = self.size[0]
 
-        print(f'drawing pattern at {x, y}')
+        print(f"drawing pattern at {x, y}")
         srcs = []
         dsts = []
         for py in range(pattern_height):
@@ -107,25 +109,24 @@ class Layer:
         painter.end()
 
     def pixel_size(self):
-        return (self.size[0] * self.tile_size,
-                self.size[1] * self.tile_size)
+        return (self.size[0] * self.tile_size, self.size[1] * self.tile_size)
 
 
 class Map:
     def __init__(self, name, tileset, size=(32, 32), tile_size=8, layers=4):
-        '''
+        """
         An entire map.
 
         Args:
             tileset(Tileset): reference to map's tileset
-        '''
+        """
         self.name = name
         self.size = size
         self.tile_size = tile_size
         self.tileset = tileset
-        self.layers = [Layer(tileset,
-                             size=size,
-                             tile_size=tile_size) for i in range(layers)]
+        self.layers = [
+            Layer(tileset, size=size, tile_size=tile_size) for i in range(layers)
+        ]
         for layer in self.layers:
             layer.hidden = False
 
@@ -139,11 +140,12 @@ class Map:
                 x, y = value % w, value // w
                 painter = QPainter(layer.image)
                 painter.setCompositionMode(QPainter.CompositionMode_Source)
-                painter.drawImage(QPoint(tile_size * dx, tile_size * dy),
-                                  tileset.copy(QRect(
-                                      tile_size * x,
-                                      tile_size * y,
-                                      tile_size, tile_size)))
+                painter.drawImage(
+                    QPoint(tile_size * dx, tile_size * dy),
+                    tileset.copy(
+                        QRect(tile_size * x, tile_size * y, tile_size, tile_size)
+                    ),
+                )
                 painter.end()
                 dx += 1
                 if dx == self.size[0]:
@@ -170,7 +172,7 @@ def make_image(map):
         if not layer.hidden:
             painter.setOpacity(1)
         else:
-            painter.setOpacity(.5)
+            painter.setOpacity(0.5)
         painter.drawImage(QPoint(0, 0), layer.image)
     painter.end()
     return image

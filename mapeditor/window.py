@@ -1,16 +1,16 @@
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import (
-        QAction,
-        QActionGroup,
-        QFileDialog,
-        QHBoxLayout,
-        QSizePolicy,
-        QMainWindow,
-        QWidget,
-        )
+    QAction,
+    QActionGroup,
+    QFileDialog,
+    QHBoxLayout,
+    QSizePolicy,
+    QMainWindow,
+    QWidget,
+)
 from PySide2.QtGui import (
-        QIcon,
-        )
+    QIcon,
+)
 
 from mapeditor.editor import MapEditor
 from mapeditor.gen import export, save, load
@@ -32,17 +32,17 @@ class MapEditorWindow(QMainWindow):
         bar.setNativeMenuBar(True)
 
         menus = {
-                    '&File': {
-                        '&New': (self.new, 'Ctrl+N'),
-                        '&Open': (self.open, 'Ctrl+O'),
-                        '&Save': (self.save, 'Ctrl+S'),
-                        'E&xport': [
-                            ('&All', self.export_all),
-                            ('.&cpp', self.export_cpp),
-                            ('.&h', self.export_header),
-                        ],
-                    },
-                }
+            "&File": {
+                "&New": (self.new, "Ctrl+N"),
+                "&Open": (self.open, "Ctrl+O"),
+                "&Save": (self.save, "Ctrl+S"),
+                "E&xport": [
+                    ("&All", self.export_all),
+                    (".&cpp", self.export_cpp),
+                    (".&h", self.export_header),
+                ],
+            },
+        }
 
         for name, items in menus.items():
             menu = bar.addMenu(name)
@@ -65,24 +65,24 @@ class MapEditorWindow(QMainWindow):
                     menu.addAction(action)
 
     def new(self):
-        print('new (not implemented)')
+        print("new (not implemented)")
 
     def open(self):
-        dialog = QFileDialog(self, 'Open map')
+        dialog = QFileDialog(self, "Open map")
         dialog.setFileMode(QFileDialog.ExistingFile)
         if dialog.exec():
-            filename, = dialog.selectedFiles()
+            (filename,) = dialog.selectedFiles()
             self.editor.load(load(filename))
 
     def save(self):
-        dialog = QFileDialog(self, 'Open map')
+        dialog = QFileDialog(self, "Open map")
         dialog.setAcceptMode(QFileDialog.AcceptSave)
         if dialog.exec():
-            filename, = dialog.selectedFiles()
+            (filename,) = dialog.selectedFiles()
             save(self.editor.editor.map, filename)
 
     def build_toolbar(self):
-        self.toolbar = self.addToolBar('Layers')
+        self.toolbar = self.addToolBar("Layers")
 
         self.build_layer_actions()
 
@@ -90,16 +90,19 @@ class MapEditorWindow(QMainWindow):
 
     def build_layer_actions(self):
         from PySide2.QtGui import QKeySequence
-        self.layers_group = QActionGroup(self)
-        self.layer_actions = [QAction(
-                                QIcon(f'mapeditor/layer{i}_icon.png'),
-                                f'Layer {i}',
-                                self) for i in range(4)]
 
-        shortcuts = [QKeySequence(Qt.Key_F5),
-                     QKeySequence(Qt.Key_F6),
-                     QKeySequence(Qt.Key_F7),
-                     QKeySequence(Qt.Key_F8), ]
+        self.layers_group = QActionGroup(self)
+        self.layer_actions = [
+            QAction(QIcon(f"mapeditor/layer{i}_icon.png"), f"Layer {i}", self)
+            for i in range(4)
+        ]
+
+        shortcuts = [
+            QKeySequence(Qt.Key_F5),
+            QKeySequence(Qt.Key_F6),
+            QKeySequence(Qt.Key_F7),
+            QKeySequence(Qt.Key_F8),
+        ]
 
         for i, action in enumerate(self.layer_actions):
             action.layer_index = i
@@ -116,32 +119,24 @@ class MapEditorWindow(QMainWindow):
         self.editor.select_layer(index)
 
     def export_all(self, *args):
-        export(self.editor.editor.map,
-               namespace='test',
-               output='test')
+        export(self.editor.editor.map, namespace="test", output="test")
 
     def export_cpp(self, *args):
-        export(self.editor.editor.map,
-               namespace='test',
-               output='test',
-               exts=('cpp',))
+        export(self.editor.editor.map, namespace="test", output="test", exts=("cpp",))
 
     def export_header(self, *args):
-        export(self.editor.editor.map,
-               namespace='test',
-               output='test',
-               exts=('h',))
+        export(self.editor.editor.map, namespace="test", output="test", exts=("h",))
 
 
 class MapEditorWindowContents(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setWindowTitle('Map editor')
+        self.setWindowTitle("Map editor")
         self.maximized = True
         self._width, self._height = 800, 600
         self.setMinimumSize(self._width, self._height)
 
-        self.editor = MapEditor(self, tileset='forest-tileset.bmp')
+        self.editor = MapEditor(self, tileset="forest-tileset.bmp")
         self.editor.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         layout = QHBoxLayout(self)

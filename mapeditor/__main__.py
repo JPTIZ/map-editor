@@ -4,7 +4,13 @@ from PySide2.QtWidgets import QApplication
 
 from mapeditor.window import MapEditorWindow
 
-app = QApplication(sys.argv)
-editor = MapEditorWindow()
-editor.show()
-sys.exit(app.exec_())
+
+def main(args):
+    app = QApplication(args)
+    editor = MapEditorWindow()
+    editor.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main(sys.argv)

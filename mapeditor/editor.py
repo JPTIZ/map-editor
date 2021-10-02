@@ -1,38 +1,31 @@
 from PySide2.QtCore import (
-        QRect,
-        Qt,
-        )
+    QRect,
+    Qt,
+)
 
 from PySide2.QtWidgets import (
-        QHBoxLayout,
-        QLabel,
-        QScrollArea,
-        QSizePolicy,
-        QWidget,
-        )
+    QHBoxLayout,
+    QLabel,
+    QScrollArea,
+    QSizePolicy,
+    QWidget,
+)
 
 from PySide2.QtGui import (
-        QColor,
-        QPainter,
-        QPen,
-        QPixmap,
-        )
+    QColor,
+    QPainter,
+    QPen,
+    QPixmap,
+)
 
 from mapeditor.map import TilePattern, Tileset, Map, make_image
 
 
 def scaled(rect, scale):
     rect = QRect(
-            rect.x() * scale,
-            rect.y() * scale,
-            rect.width() * scale,
-            rect.height() * scale)
+        rect.x() * scale, rect.y() * scale, rect.width() * scale, rect.height() * scale
+    )
     return rect
-
-
-def pos(event):
-    pos = event.pos()
-    return pos.x(), pos.y()
 
 
 class MapEditor(QWidget):
@@ -40,12 +33,12 @@ class MapEditor(QWidget):
         super().__init__(*args, **kwargs)
 
         self.map = Map(
-                name='Map001',
-                tileset=Tileset(filename=tileset),
-                size=(32, 32),
-                tile_size=8,
-                layers=4
-                )
+            name="Map001",
+            tileset=Tileset(filename=tileset),
+            size=(32, 32),
+            tile_size=8,
+            layers=4,
+        )
 
         contents = QHBoxLayout(self)
 
@@ -53,14 +46,10 @@ class MapEditor(QWidget):
         left = QScrollArea()
         left.setWidget(self.tileset_selector)
         left.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        left.setStyleSheet('background: url(\'mapeditor/square.png\') repeat;')
+        left.setStyleSheet("background: url('mapeditor/square.png') repeat;")
 
-        self.tilemap = TilemapEditor(
-                self.map,
-                tileset_selector=self.tileset_selector
-                )
-        self.tilemap.setStyleSheet(
-                'background: url(\'mapeditor/square.png\') repeat;')
+        self.tilemap = TilemapEditor(self.map, tileset_selector=self.tileset_selector)
+        self.tilemap.setStyleSheet("background: url('mapeditor/square.png') repeat;")
         right = QScrollArea()
         right.setWidget(self.tilemap)
 
@@ -78,7 +67,7 @@ class MapEditor(QWidget):
         self.tilemap.change_map(self.map)
 
     def select_layer(self, index):
-        print(f'selected {index}')
+        print(f"selected {index}")
         for layer in self.map.layers:
             layer.hidden = True
         self.tilemap._current_layer = index
@@ -89,9 +78,10 @@ class MapEditor(QWidget):
 
 
 class TilesetSelector(QLabel):
-    '''
+    """
     Widget for selecting tiles used to fill map.
-    '''
+    """
+
     def __init__(self, *args, tileset=None, tile_size=32, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -110,8 +100,9 @@ class TilesetSelector(QLabel):
         self.tiles_per_row = self._width // (self.tile_size * self.scaling)
 
         if self.tileset.image:
-            self.setPixmap(QPixmap.fromImage(self.tileset.image)
-                                  .scaledToWidth(self._width))
+            self.setPixmap(
+                QPixmap.fromImage(self.tileset.image).scaledToWidth(self._width)
+            )
 
     def scale(self):
         return self.tile_size * self.scaling
@@ -162,14 +153,11 @@ class TilesetSelector(QLabel):
 
 
 class TilemapEditor(QLabel):
-    '''
+    """
     Widget to show and edit the map itself.
-    '''
-    def __init__(self,
-                 map,
-                 *args,
-                 tileset_selector=None,
-                 **kwargs):
+    """
+
+    def __init__(self, map, *args, tileset_selector=None, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.map = map
@@ -193,8 +181,7 @@ class TilemapEditor(QLabel):
 
     def remake_image(self):
         width = self.map.pixel_width() * self.scaling
-        self.setPixmap(QPixmap.fromImage(make_image(self.map))
-                              .scaledToWidth(width))
+        self.setPixmap(QPixmap.fromImage(make_image(self.map)).scaledToWidth(width))
 
     def on_click(self, e):
         sel_rect = self.tileset_selector.sel_rect
@@ -212,9 +199,7 @@ class TilemapEditor(QLabel):
         tileset = self.map.tileset
 
         rect = scaled(sel_rect, self.map.tile_size)
-        pattern = TilePattern(
-            region=sel_rect,
-            image=tileset.image.copy(rect))
+        pattern = TilePattern(region=sel_rect, image=tileset.image.copy(rect))
         self.current_layer().place(x, y, pattern)
         self.remake_image()
 
@@ -243,7 +228,7 @@ class TilemapEditor(QLabel):
 
         if rect:
             self.sel_rect = QRect(rect)
-            x, y = pos(e)
+            x, y = e.x(), e.y()
             self.sel_rect.moveTo(x // scale, y // scale)
             self.repaint()
 
@@ -266,16 +251,14 @@ class TilemapEditor(QLabel):
             xoffset = (x - ox) % rect.width()
             yoffset = (y - oy) % rect.height()
             reco = QRect(
-                    rect.x() + xoffset,
-                    rect.y() + yoffset,
-                    max(0,
-                        min(rect.width(),
-                            rect.width() - abs(x - self.last_point[0]))),
-                    min(rect.height(), abs(y - self.last_point[1]))
-                    )
+                rect.x() + xoffset,
+                rect.y() + yoffset,
+                max(0, min(rect.width(), rect.width() - abs(x - self.last_point[0]))),
+                min(rect.height(), abs(y - self.last_point[1])),
+            )
             pattern = TilePattern(
-                region=reco,
-                image=tileset.image.copy(scaled(reco, self.map.tile_size)))
+                region=reco, image=tileset.image.copy(scaled(reco, self.map.tile_size))
+            )
             self.current_layer().place(x, y, pattern)
 
         self.remake_image()

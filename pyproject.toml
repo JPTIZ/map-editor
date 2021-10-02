@@ -12,6 +12,7 @@ Jinja2 = "^3.0.1"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"
+black = "^21.9b0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

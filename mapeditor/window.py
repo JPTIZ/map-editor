@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PySide2.QtCore import Qt
+from PySide2.QtWidgets import (
         QAction,
         QActionGroup,
         QFileDialog,
@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
         QMainWindow,
         QWidget,
         )
-from PyQt5.QtGui import (
+from PySide2.QtGui import (
         QIcon,
         )
 
@@ -89,16 +89,17 @@ class MapEditorWindow(QMainWindow):
         self.toolbar.addActions(self.layers_group.actions())
 
     def build_layer_actions(self):
+        from PySide2.QtGui import QKeySequence
         self.layers_group = QActionGroup(self)
         self.layer_actions = [QAction(
                                 QIcon(f'mapeditor/layer{i}_icon.png'),
                                 f'Layer {i}',
                                 self) for i in range(4)]
 
-        shortcuts = [Qt.Key_F5,
-                     Qt.Key_F6,
-                     Qt.Key_F7,
-                     Qt.Key_F8, ]
+        shortcuts = [QKeySequence(Qt.Key_F5),
+                     QKeySequence(Qt.Key_F6),
+                     QKeySequence(Qt.Key_F7),
+                     QKeySequence(Qt.Key_F8), ]
 
         for i, action in enumerate(self.layer_actions):
             action.layer_index = i
